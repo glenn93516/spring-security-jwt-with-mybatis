@@ -5,19 +5,19 @@
 
 <mapper namespace="com.bookflex.backend.mapper.UserMapper">
     <select id="findUserByUsername" resultType="UserDto">
-        SELECT USER_ID userId, username, password, role
-        FROM USER
-        WHERE USERNAME = #{username}
+        SELECT user_id userId, username, password, role
+        FROM user
+        WHERE username = #{username}
     </select>
 
     <select id="findByUserId" resultType="UserDto">
-        SELECT USER_ID userId, username, PASSWORD, role
-        FROM USER
-        WHERE USER_ID = #{userId}
+        SELECT user_id userId, username, PASSWORD, role
+        FROM user
+        WHERE user_id = #{userId}
     </select>
     
     <insert id="save" parameterType="UserDto">
-        INSERT INTO USER (USERNAME, PASSWORD)
+        INSERT INTO user (username, password)
         VALUES ( #{username}, #{password} )
     </insert>
 </mapper>

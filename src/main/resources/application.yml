@@ -1,9 +1,10 @@
 spring:
   datasource:
-    url: jdbc:h2:tcp://localhost/~/test;
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+#    url: jdbc:h2:tcp://localhost/~/test;
+    url: jdbc:mysql://127.0.0.1:3306/field_dev?serverTimezone=UTC&useUniCode=yes&characterEncoding=UTF-8
+    username: ssafy
+    password: ssafy
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 
 logging:

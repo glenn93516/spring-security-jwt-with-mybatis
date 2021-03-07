@@ -2,7 +2,12 @@ package com.bookflex.backend.controller;
 
 import com.bookflex.backend.dto.LoginDto;
 import com.bookflex.backend.dto.UserDto;
+import com.bookflex.backend.dto.response.BaseResponse;
+import com.bookflex.backend.dto.response.SingleDataResponse;
+import com.bookflex.backend.exception.DuplicatedUsernameException;
 import com.bookflex.backend.exception.LoginFailedException;
+import com.bookflex.backend.exception.UserNotFoundException;
+import com.bookflex.backend.service.ResponseService;
 import com.bookflex.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -17,12 +22,26 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class UserController {
+
     private final UserService userService;
+    private final ResponseService responseService;
     private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/join")
     public ResponseEntity join(@RequestBody UserDto userDto) {
-        return ResponseEntity.ok(userService.join(userDto));
+        ResponseEntity responseEntity = null;
+        try {
+            UserDto savedUser = userService.join(userDto);
+            SingleDataResponse<UserDto> response = responseService.getSingleDataResponse(true, "회원가입 성공", savedUser);
+
+            responseEntity = ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (DuplicatedUsernameException exception) {
+            logger.debug(exception.getMessage());
+            BaseResponse response = responseService.getBaseResponse(false, exception.getMessage());
+
+            responseEntity = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return responseEntity;
     }
 
     @PostMapping("/login")
@@ -34,23 +53,36 @@ public class UserController {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Authorization", "Bearer " + token);
 
-            return new ResponseEntity(token, httpHeaders, HttpStatus.OK);
+            SingleDataResponse<String> response = responseService.getSingleDataResponse(true, "로그인 성공", token);
+
+            responseEntity = ResponseEntity.status(HttpStatus.OK).headers(httpHeaders).body(response);
         } catch (LoginFailedException exception) {
             logger.debug(exception.getMessage());
-            return ResponseEntity.badRequest().body(exception.getMessage());
+            BaseResponse response = responseService.getBaseResponse(false, exception.getMessage());
+
+            responseEntity = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+
+        return responseEntity;
     }
 
     @GetMapping("/users")
     public ResponseEntity findUserByUsername(final Authentication authentication) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        String username = authentication.getName();
-//
-//        return ResponseEntity.ok(userService.findUserByUsername(username));
+        ResponseEntity responseEntity = null;
+        try {
+            Long userId = ((UserDto) authentication.getPrincipal()).getUserId();
+            UserDto findUser = userService.findByUserId(userId);
 
-        Long userId = ((UserDto) authentication.getPrincipal()).getUserId();
+            SingleDataResponse<UserDto> response = responseService.getSingleDataResponse(true, "조회 성공", findUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.findByUserId(userId));
+            responseEntity = ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (UserNotFoundException exception) {
+            logger.debug(exception.getMessage());
+            BaseResponse response = responseService.getBaseResponse(false, exception.getMessage());
+
+            responseEntity = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        return responseEntity;
     }
 }

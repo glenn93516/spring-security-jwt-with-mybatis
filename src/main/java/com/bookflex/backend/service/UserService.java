@@ -1,5 +1,6 @@
 package com.bookflex.backend.service;
 
+import com.bookflex.backend.exception.UserNotFoundException;
 import com.bookflex.backend.utils.JwtTokenProvider;
 import com.bookflex.backend.dto.LoginDto;
 import com.bookflex.backend.dto.UserDto;
@@ -7,13 +8,11 @@ import com.bookflex.backend.exception.DuplicatedUsernameException;
 import com.bookflex.backend.exception.LoginFailedException;
 import com.bookflex.backend.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +48,6 @@ public class UserService {
 
     public UserDto findByUserId(Long userId) {
         return userMapper.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("없는 유저입니다."));
+                .orElseThrow(() -> new UserNotFoundException("없는 유저입니다."));
     }
 }
